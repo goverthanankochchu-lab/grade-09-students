@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Student Sri Lanka - Study Materials</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'float-slow': 'float 6s ease-in-out infinite',
+            'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .dark .glass-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-glow {
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 60%, transparent 100%);
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2563eb;
+    }
+    @keyframes blobMove { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,20px) scale(1.12); } }
+    .blob { animation: blobMove 9s ease-in-out infinite; }
+    .blob-2 { animation-duration: 13s; animation-direction: reverse; }
+    @keyframes cloudBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    .cloud-bounce { display: inline-block; animation: cloudBounce 1.6s ease-in-out infinite; }
+    @keyframes syncSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+    .sync-fill { width: 40%; animation: syncSlide 2.2s ease-in-out infinite; }
+    @keyframes revealUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .reveal { animation: revealUp .7s ease-out both; }
+    @media (prefers-reduced-motion: reduce) {
+      .blob, .cloud-bounce, .sync-fill, .reveal, .animate-float-slow { animation: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
+
+  <!-- STICKY GLASSMORPHISM NAVBAR -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 glass-nav transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center space-x-3 group">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 group-hover:scale-105 transition-transform duration-300">
+          <i class="fa-solid fa-graduation-cap text-xl"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+            SMART<span class="text-brand-600 dark:text-brand-500">STUDENT</span>
+          </span>
+          <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase mt-0.5">Sri Lanka Academic Portal</span>
+        </div>
+      </a>
+
+      <!-- Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- Live Connection Badge -->
+        <span id="supabaseStatusBadge" class="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-300 dark:border-emerald-700/50 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="supabaseStatusText">Supabase Cloud Live</span>
+        </span>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggle" onclick="toggleTheme()" class="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm" title="Toggle Theme">
+          <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+          <i class="fa-solid fa-sun text-lg hidden dark:block text-amber-400"></i>
+        </button>
+
+      </div>
+    </div>
+
+  </header>
+
+  <!-- MAIN TAB CONTENT CONTAINER -->
+  <main class="flex-grow">
+
+    <!-- ==================== TAB 3: STUDY MATERIALS ==================== -->
+    <div id="tab-content-materials">
+      <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- HERO: image + animated cloud storage banner -->
+        <div class="reveal relative overflow-hidden rounded-3xl mb-10 bg-gradient-to-br from-brand-800 via-brand-600 to-cyan-500 text-white shadow-2xl shadow-brand-500/20">
+          <div class="blob absolute -top-24 -left-16 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+          <div class="blob blob-2 absolute -bottom-28 right-10 w-80 h-80 rounded-full bg-cyan-300/20 blur-3xl pointer-events-none"></div>
+
+          <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-10 items-center p-8 sm:p-12">
+            <div class="lg:col-span-7 space-y-5">
+              <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-xs font-bold">
+                <i class="fa-solid fa-cloud-arrow-up cloud-bounce"></i>
+                <span>Supabase Cloud Storage</span>
+              </span>
+              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight">Grade 9 Study Materials in Tamil</h1>
+              <p class="text-white/85 text-sm sm:text-base max-w-xl leading-relaxed">Upload, search and download Grade 9 PDF notes in Tamil medium. Every file is kept in cloud storage and shows up instantly on every student's device.</p>
+
+              <div class="grid grid-cols-3 gap-3 max-w-md pt-2">
+                <div class="rounded-2xl bg-white/15 border border-white/20 p-3">
+                  <p class="text-2xl font-extrabold" id="statFiles">0</p>
+                  <p class="text-[11px] text-white/80">PDF files</p>
+                </div>
+                <div class="rounded-2xl bg-white/15 border border-white/20 p-3">
+                  <p class="text-2xl font-extrabold" id="statDownloads">0</p>
+                  <p class="text-[11px] text-white/80">Downloads</p>
+                </div>
+                <div class="rounded-2xl bg-white/15 border border-white/20 p-3">
+                  <p class="text-2xl font-extrabold" id="statSubjects">0</p>
+                  <p class="text-[11px] text-white/80">Subjects</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 flex justify-center">
+              <div class="relative w-full max-w-sm animate-float-slow">
+                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80" alt="Students studying together" class="w-full h-64 object-cover rounded-3xl shadow-2xl border-4 border-white/30">
+                <div class="absolute -bottom-5 -left-3 sm:-left-6 flex items-center space-x-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded-2xl p-3 shadow-xl border border-slate-200 dark:border-slate-700">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <i class="fa-solid fa-cloud-arrow-down cloud-bounce"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold">Cloud sync active</p>
+                    <div class="mt-1.5 h-1.5 w-24 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                      <div class="sync-fill h-full rounded-full bg-emerald-500"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header & + Add PDF Button -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white">Study Materials & Notes</h2>
+            <p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Live cloud storage. Uploaded PDFs appear instantly on all student devices.</p>
+          </div>
+          
+          <button onclick="openUploadModal()" class="px-6 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-xl shadow-brand-500/25 transition-all hover:scale-105 flex items-center space-x-2 self-start md:self-auto">
+            <i class="fa-solid fa-file-circle-plus text-lg"></i>
+            <span>+ Add PDF</span>
+          </button>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div class="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <!-- Search box -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Search Title</label>
+            <div class="relative">
+              <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+              <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="Search PDF title..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+            </div>
+          </div>
+
+          <!-- Subject Filter -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Subject</label>
+            <select id="filterSubject" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">All 13 Subjects</option>
+              <option value="Tamil (First Language)">Tamil (First Language)</option>
+              <option value="Maths (Mathematics)">Maths (Mathematics)</option>
+              <option value="Science">Science</option>
+              <option value="English">English</option>
+              <option value="History">History</option>
+              <option value="Religion">Religion</option>
+              <option value="Health">Health & Physical Ed.</option>
+              <option value="Civics">Civics</option>
+              <option value="Geography">Geography</option>
+              <option value="Aesthetic Studies">Aesthetic Studies</option>
+              <option value="ICT">ICT</option>
+              <option value="PTS">PTS</option>
+              <option value="Sinhala (Second Language)">Sinhala (Second Language)</option>
+            </select>
+          </div>
+
+          <!-- Term Filter -->
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Term</label>
+            <select id="filterTerm" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="all">All Terms</option>
+              <option value="Term 1">Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div id="connectionError" class="hidden mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-sm font-semibold text-red-700 dark:text-red-300"></div>
+
+        <!-- Materials Table Container -->
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                  <th class="py-4 px-6">Document Title</th>
+                  <th class="py-4 px-4">Grade</th>
+                  <th class="py-4 px-4">Subject</th>
+                  <th class="py-4 px-4">Term & Lang</th>
+                  <th class="py-4 px-4 text-center">Downloads</th>
+                  <th class="py-4 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="materialsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm">
+                <!-- Dynamically Rendered Records from Supabase -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div id="materialsEmptyState" class="hidden py-16 text-center">
+            <div class="w-16 h-16 rounded-3xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto mb-4 text-2xl animate-bounce">
+              <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h3 class="font-bold text-slate-800 dark:text-white text-base">No Study Materials Found</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Try changing your filters or click "+ Add PDF" to upload the first file.</p>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </main>
+
+
+  <!-- ==================== UPLOAD MODAL (BULK PDF FAST UPLOAD) ==================== -->
+  <div id="uploadModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-all">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl bg-brand-100 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Fast Upload PDFs (Bulk Supported)</h3>
+        </div>
+        <button onclick="closeUploadModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <div class="p-6 space-y-4 overflow-y-auto flex-grow">
+        
+        <!-- File Picker -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select PDF File(s) *</label>
+          <input type="file" id="uploadFilesInput" multiple accept="application/pdf" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/40 dark:file:text-brand-300 hover:file:bg-brand-100 cursor-pointer border border-slate-200 dark:border-slate-700 rounded-2xl p-2 bg-slate-50 dark:bg-slate-900">
+          <p class="text-[10px] text-slate-400 mt-1">Select multiple PDF files for ultra-fast batch upload. Filenames convert to titles automatically.</p>
+        </div>
+
+        <!-- Default Grade selection for batch -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Grade *</label>
+            <select id="uploadGrade" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500" disabled>
+              <option value="Grade 9" selected>Grade 9</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Default Term *</label>
+            <select id="uploadTerm" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+              <option value="Term 1" selected>Term 1</option>
+              <option value="Term 2">Term 2</option>
+              <option value="Term 3">Term 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Subject *</label>
+            <select id="uploadSubject" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500">
+              <option value="Tamil (First Language)">Tamil (First Language)</option>
+              <option value="Maths (Mathematics)" selected>Maths (Mathematics)</option>
+              <option value="Science">Science</option>
+              <option value="English">English</option>
+              <option value="History">History</option>
+              <option value="Religion">Religion</option>
+              <option value="Health">Health & Physical Ed.</option>
+              <option value="Civics">Civics</option>
+              <option value="Geography">Geography</option>
+              <option value="Aesthetic Studies">Aesthetic Studies</option>
+              <option value="ICT">ICT</option>
+              <option value="PTS">PTS</option>
+              <option value="Sinhala (Second Language)">Sinhala (Second Language)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Language *</label>
+            <select id="uploadLanguage" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500" disabled>
+              <option value="Tamil" selected>Tamil</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Progress status indicator -->
+        <div id="uploadProgressBox" class="hidden p-3 rounded-xl bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-700 text-xs font-bold text-brand-700 dark:text-brand-300 text-center">
+          <i class="fa-solid fa-spinner fa-spin mr-2"></i> <span id="uploadProgressText">High-speed upload in progress...</span>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end space-x-3">
+        <button onclick="closeUploadModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          Cancel
+        </button>
+        <button onclick="executeFastUpload()" id="uploadSubmitBtn" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Fast Upload to Cloud</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ==================== EDIT TITLE MODAL ==================== -->
+  <div id="editTitleModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-base text-slate-900 dark:text-white">Edit Document Title</h3>
+        <button onclick="closeEditTitleModal()" class="p-2 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <input type="hidden" id="editMaterialId">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">New Document Title</label>
+        <input type="text" id="editMaterialTitleInput" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand-500">
+      </div>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button onclick="closeEditTitleModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300">Cancel</button>
+        <button onclick="saveEditedTitle()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <span class="text-white font-extrabold text-sm tracking-tight">Smart Student Sri Lanka</span>
+          <p class="text-[10px] text-slate-500">Grade 9 Tamil Medium Cloud Portal</p>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500">&copy; 2026 Smart Student Sri Lanka. All rights reserved. Powered by Supabase Cloud.</p>
+    </div>
+  </footer>
+
+
+  <!-- ==================== JAVASCRIPT LOGIC & FAST UPLOAD ==================== -->
+  <script>
+    // SUPABASE CONFIGURATION (Using your provided publishable key)
+    const SUPABASE_URL = "https://dnoszekrxejupxiidxhv.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_qzKG--IIYDHm1ksuE49XJg_teBpSJda";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const ONLY_GRADE = 'Grade 9';
+    const ONLY_MEDIUM = 'Tamil';
+    let globalMaterials = [];
+
+    // Initialize application on load
+    document.addEventListener('DOMContentLoaded', () => {
+      animateCount(document.getElementById('statSubjects'), document.getElementById('uploadSubject').options.length);
+      fetchMaterialsFromSupabase();
+    });
+
+    // Theme Toggle
+    function toggleTheme() {
+      const htmlEl = document.documentElement;
+      if (htmlEl.classList.contains('dark')) {
+        htmlEl.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        htmlEl.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+
+    // ==================== SUPABASE FETCH MATERIALS ====================
+    function animateCount(el, target) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const from = parseInt(el.dataset.value || '0', 10);
+      el.dataset.value = target;
+      if (reduce || from === target) { el.textContent = target.toLocaleString(); return; }
+      const t0 = performance.now(), dur = 900;
+      (function tick(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        el.textContent = Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3))).toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }
+
+    function updateStats(items) {
+      animateCount(document.getElementById('statFiles'), items.length);
+      animateCount(document.getElementById('statDownloads'), items.reduce((n, i) => n + (i.downloads || 0), 0));
+    }
+
+    const BADGE_OK = "hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-300 dark:border-emerald-700/50 shadow-sm";
+    const BADGE_ERR = "hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-[11px] font-bold border border-red-300 dark:border-red-700/50 shadow-sm";
+
+    function setConnectionStatus(ok, message) {
+      document.getElementById('supabaseStatusBadge').className = ok ? BADGE_OK : BADGE_ERR;
+      document.getElementById('supabaseStatusText').textContent = ok ? 'Supabase Cloud Live' : 'Cloud Offline';
+      const banner = document.getElementById('connectionError');
+      if (ok) {
+        banner.classList.add('hidden');
+      } else {
+        banner.textContent = 'Supabase problem: ' + message + ' (check SUPABASE_URL, the pdfs bucket and the table policies)';
+        banner.classList.remove('hidden');
+      }
+    }
+
+    async function fetchMaterialsFromSupabase() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('study_materials')
+          .select('*')
+          .eq('grade', ONLY_GRADE)
+          .eq('medium', ONLY_MEDIUM)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Supabase fetch error:", error);
+          globalMaterials = [];
+          setConnectionStatus(false, error.message || 'database error');
+        } else {
+          globalMaterials = data || [];
+          setConnectionStatus(true);
+          updateStats(globalMaterials);
+        }
+      } catch (err) {
+        console.error("Network or connection error:", err);
+        globalMaterials = [];
+        setConnectionStatus(false, err.message || 'network error');
+      }
+      applyFilters();
+    }
+
+
+    // ==================== RENDER TABLE ====================
+    function renderMaterialsTable(items) {
+      const tbody = document.getElementById('materialsTableBody');
+      const emptyState = document.getElementById('materialsEmptyState');
+      tbody.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors";
+
+        const downloadsCount = item.downloads || 0;
+
+        tr.innerHTML = `
+          <td class="py-4 px-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+              <div>
+                <span class="font-bold text-slate-900 dark:text-white block">${escapeHtml(item.title)}</span>
+                <span class="text-[11px] text-slate-400">PDF Document</span>
+              </div>
+            </div>
+          </td>
+          <td class="py-4 px-4 font-semibold text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.grade)}</td>
+          <td class="py-4 px-4 font-semibold text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.subject)}</td>
+          <td class="py-4 px-4">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold mr-1">${escapeHtml(item.term)}</span>
+            <span class="px-2.5 py-1 rounded-lg bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-[11px] font-bold">${escapeHtml(item.medium)}</span>
+          </td>
+          <td class="py-4 px-4 text-center">
+            <span class="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold">
+              <i class="fa-solid fa-download text-[10px] mr-1"></i> ${downloadsCount}
+            </span>
+          </td>
+          <td class="py-4 px-6 text-right space-x-2">
+            <button data-action="edit" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-brand-50 hover:text-brand-600 transition-colors" title="Edit Title">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+            <button data-action="download" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all hover:scale-105 inline-flex items-center space-x-1.5">
+              <i class="fa-solid fa-download text-xs"></i>
+              <span>Download</span>
+            </button>
+          </td>
+        `;
+        tr.querySelector('[data-action="edit"]').addEventListener('click', () => openEditTitleModal(item.id, item.title));
+        tr.querySelector('[data-action="download"]').addEventListener('click', () => downloadPdfFile(item));
+        tbody.appendChild(tr);
+      });
+    }
+
+
+    // ==================== FILTER ENGINE ====================
+    function applyFilters() {
+      const searchTxt = document.getElementById('filterSearch').value.toLowerCase();
+      const subjectVal = document.getElementById('filterSubject').value;
+      const termVal = document.getElementById('filterTerm').value;
+
+      const filtered = globalMaterials.filter(item =>
+        item.title.toLowerCase().includes(searchTxt) &&
+        (subjectVal === 'all' || item.subject === subjectVal) &&
+        (termVal === 'all' || item.term === termVal)
+      );
+
+      renderMaterialsTable(filtered);
+    }
+
+
+    // ==================== FAST BULK UPLOAD MODAL & LOGIC ====================
+    function openUploadModal() {
+      document.getElementById('uploadModal').classList.remove('hidden');
+    }
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.add('hidden');
+      document.getElementById('uploadFilesInput').value = '';
+      document.getElementById('uploadProgressBox').classList.add('hidden');
+    }
+
+    async function executeFastUpload() {
+      const fileInput = document.getElementById('uploadFilesInput');
+      const files = Array.from(fileInput.files || []);
+
+      if (files.length === 0) {
+        alert("Please select at least one PDF file to upload.");
+        return;
+      }
+
+      const grade = ONLY_GRADE;
+      const term = document.getElementById('uploadTerm').value;
+      const subject = document.getElementById('uploadSubject').value;
+      const medium = ONLY_MEDIUM;
+
+      const progressBox = document.getElementById('uploadProgressBox');
+      const progressText = document.getElementById('uploadProgressText');
+      const submitBtn = document.getElementById('uploadSubmitBtn');
+
+      progressBox.classList.remove('hidden');
+      submitBtn.disabled = true;
+
+      let successCount = 0;
+      const errors = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        progressText.textContent = `Uploading [${i + 1}/${files.length}]: ${file.name}...`;
+
+        const cleanTitle = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+
+        try {
+          // Storage keys must be plain ASCII (Tamil/Sinhala names or symbols would fail)
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const filePath = `pdf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${safeName}`;
+
+          const { error: storageError } = await supabaseClient.storage
+            .from('pdfs')
+            .upload(filePath, file, { cacheControl: '3600', upsert: false, contentType: 'application/pdf' });
+
+          if (storageError) {
+            console.error("Storage error:", storageError);
+            errors.push(`${file.name}: ${storageError.message}`);
+            continue;
+          }
+
+          const { data: publicUrlData } = supabaseClient.storage
+            .from('pdfs')
+            .getPublicUrl(filePath);
+
+          const { error: dbError } = await supabaseClient
+            .from('study_materials')
+            .insert([{
+              title: cleanTitle,
+              grade: grade,
+              term: term,
+              subject: subject,
+              medium: medium,
+              file_url: publicUrlData.publicUrl,
+              downloads: 0
+            }]);
+
+          if (dbError) {
+            console.error("Database error:", dbError);
+            errors.push(`${file.name}: ${dbError.message}`);
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          console.error("Upload exception:", err);
+          errors.push(`${file.name}: ${err.message}`);
+        }
+      }
+
+      const total = files.length;
+      progressBox.classList.add('hidden');
+      submitBtn.disabled = false;
+      closeUploadModal();
+
+      alert(`Uploaded ${successCount} of ${total} PDF(s).` + (errors.length ? "\n\nProblems:\n" + errors.join("\n") : ""));
+      fetchMaterialsFromSupabase();
+    }
+
+
+    // ==================== EDIT TITLE ====================
+    function openEditTitleModal(id, currentTitle) {
+      document.getElementById('editMaterialId').value = id;
+      document.getElementById('editMaterialTitleInput').value = currentTitle;
+      document.getElementById('editTitleModal').classList.remove('hidden');
+    }
+    function closeEditTitleModal() {
+      document.getElementById('editTitleModal').classList.add('hidden');
+    }
+    async function saveEditedTitle() {
+      const id = document.getElementById('editMaterialId').value;
+      const newTitle = document.getElementById('editMaterialTitleInput').value.trim();
+
+      if (!newTitle) {
+        alert("Title cannot be empty.");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from('study_materials')
+        .update({ title: newTitle })
+        .eq('id', id);
+
+      if (error) {
+        alert("Failed to update title in Supabase: " + error.message);
+      } else {
+        closeEditTitleModal();
+        fetchMaterialsFromSupabase();
+      }
+    }
+
+
+    // ==================== DOWNLOAD & COUNTER INCREMENT ====================
+    async function downloadPdfFile(item) {
+      const anchor = document.createElement('a');
+      anchor.href = item.file_url;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener';
+      anchor.download = item.title + ".pdf";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+
+      const { error } = await supabaseClient
+        .from('study_materials')
+        .update({ downloads: (item.downloads || 0) + 1 })
+        .eq('id', item.id);
+
+      if (!error) fetchMaterialsFromSupabase();
+    }
+
+
+    // Helper to prevent XSS
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
